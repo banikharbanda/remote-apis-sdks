@@ -335,6 +335,7 @@ func (ec *Context) ExecuteRemotely() {
 		ec.Result = command.NewRemoteErrorResult(fmt.Errorf("unexpected operation result type: %v", or))
 		return
 	}
+
 	resp := &repb.ExecuteResponse{}
 	if err := or.UnmarshalTo(resp); err != nil {
 		ec.Result = command.NewRemoteErrorResult(err)
@@ -365,6 +366,7 @@ func (ec *Context) ExecuteRemotely() {
 			ec.Result.Status = command.CacheHitResultStatus
 		}
 	}
+
 	if st.Code() == codes.DeadlineExceeded {
 		ec.Result = command.NewTimeoutResult()
 		return
@@ -401,8 +403,8 @@ func (ec *Context) DownloadOutputs(outputDir string) {
 
 // DownloadSpecifiedOutputs downloads the specified outputs into the specified directory
 // This function is run when the option to preserve unchanged outputs is on
-func (ec *Context) DownloadSpecifiedOutputs(outs map[string]*TreeOutput, outDir string) {
-	st := ec.Result.status
+func (ec *Context) DownloadSpecifiedOutputs(outs map[string]*rc.TreeOutput, outDir string) {
+	st := ec.Result.Status
 	ec.Metadata.EventTimes[command.EventDownloadResults] = &command.TimeInterval{From: time.Now()}
 	outDir = filepath.Join(outDir, ec.cmd.WorkingDir)
 	stats, err := ec.client.GrpcClient.DownloadOutputs(ec.ctx, outs, outDir, ec.client.FileMetadataCache)
@@ -422,7 +424,7 @@ func (ec *Context) DownloadSpecifiedOutputs(outs map[string]*TreeOutput, outDir 
 
 // GetFlattenedOutputs flattens the outputs from the ActionResult of the context and returns
 // a map of output paths relative to the working directory and their corresponding TreeOutput
-func (ec *Context) GetFlattenedOutputs() (map[string]*TreeOutput, error) {
+func (ec *Context) GetFlattenedOutputs() (map[string]*rc.TreeOutput, error) {
 	if ec.resPb == nil {
 		return nil, nil
 	}

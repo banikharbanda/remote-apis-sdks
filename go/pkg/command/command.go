@@ -306,6 +306,9 @@ type ExecutionOptions struct {
 	// Download command outputs after execution. Defaults to true.
 	DownloadOutputs bool
 
+	// Preserve mtimes for unchanged outputs when downloading. Defaults to false.
+	PreserveUnchangedOutputMtime bool
+
 	// Download command stdout and stderr. Defaults to true.
 	DownloadOutErr bool
 }
@@ -316,6 +319,7 @@ func DefaultExecutionOptions() *ExecutionOptions {
 		AcceptCached:    true,
 		DoNotCache:      false,
 		DownloadOutputs: true,
+		PreserveUnchangedOutputMtime: false,
 		DownloadOutErr:  true,
 	}
 }

@@ -1261,7 +1261,7 @@ func (c *Client) DownloadActionOutputs(ctx context.Context, resPb *repb.ActionRe
 			return nil, err
 		}
 	}
-	return c.downloadOutputs(ctx, outs, outDir, cache)
+	return c.DownloadOutputs(ctx, outs, outDir, cache)
 }
 
 // DownloadOutputs downloads the specified outputs. It returns the amount of downloaded bytes.
