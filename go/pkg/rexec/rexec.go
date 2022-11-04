@@ -399,6 +399,36 @@ func (ec *Context) DownloadOutputs(outputDir string) {
 	}
 }
 
+// DownloadSpecifiedOutputs downloads the specified outputs into the specified directory
+// This function is run when the option to preserve unchanged outputs is on
+func (ec *Context) DownloadSpecifiedOutputs(outs map[string]*TreeOutput, outDir string) {
+	st := ec.Result.status
+	ec.Metadata.EventTimes[command.EventDownloadResults] = &command.TimeInterval{From: time.Now()}
+	outDir = filepath.Join(outDir, ec.cmd.WorkingDir)
+	stats, err := ec.client.GrpcClient.DownloadOutputs(ec.ctx, outs, outDir, ec.client.FileMetadataCache)
+	if err != nil {
+		stats = &rc.MovedBytesMetadata{}
+		ec.Result = command.NewRemoteErrorResult(err)
+	} else {
+		ec.Result = command.NewResultFromExitCode((int)(ec.resPb.ExitCode))
+	}
+	ec.Metadata.EventTimes[command.EventDownloadResults].To = time.Now()
+	ec.Metadata.LogicalBytesDownloaded += stats.LogicalMoved
+        ec.Metadata.RealBytesDownloaded += stats.RealMoved
+	if ec.Result.Err == nil {
+                ec.Result.Status = st
+        }
+}
+
+// GetFlattenedOutputs flattens the outputs from the ActionResult of the context and returns
+// a map of output paths relative to the working directory and their corresponding TreeOutput
+func (ec *Context) GetFlattenedOutputs() (map[string]*TreeOutput, error) {
+	if ec.resPb == nil {
+		return nil, nil
+	}
+	return ec.client.GrpcClient.FlattenActionOutputs(ec.ctx, ec.resPb)
+}
+
 // GetOutputFileDigests returns a map of output file paths to digests.
 // This function is supposed to be run after a successful cache-hit / remote-execution
 // has been run with the given execution context. If called before the completion of
